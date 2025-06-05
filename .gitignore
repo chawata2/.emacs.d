@@ -1,0 +1,10 @@
+elpa/
+history
+auto-save-list/
+.lsp-session-v1
+.cache/
+\#init.el#
+transient/
+config.el
+undo-fu-session/
+projects

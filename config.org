@@ -1,0 +1,426 @@
+* Table of Contents                                                     :TOC:
+- [[#note][NOTE]]
+  - [[#プロジェクトに追加][プロジェクトに追加]]
+- [[#emacs][EMACS]]
+- [[#ui][UI]]
+  - [[#theme][Theme]]
+  - [[#icon][Icon]]
+- [[#utillity][UTILLITY]]
+- [[#dired][DIRED]]
+- [[#edit][EDIT]]
+- [[#lsp][LSP]]
+- [[#typescript][TypeScript]]
+- [[#org][Org]]
+- [[#git][Git]]
+- [[#shell][SHELL]]
+- [[#claude][Claude]]
+- [[#keymap][KEYMAP]]
+  - [[#evil][evil]]
+  - [[#evil-collection][evil-collection]]
+  - [[#evil-surround][evil-surround]]
+  - [[#evil-commentary][evil-commentary]]
+  - [[#other][OTHER]]
+
+* NOTE
+
+** プロジェクトに追加
+リポジトリを開いただけでは/projects/ファイルに追記されない。
+内部で~project-remember-project~が呼ばれる必要があるとのこと。
+適当に~project-find-file~などを実行するとプロジェクトとして記憶される。
+
+
+* EMACS
+
+#+BEGIN_SRC emacs-lisp
+  (setq custom-file (locate-user-emacs-file "custom.el")) ;; 自動生成される設定を別ファイルに書き出す。
+  (load custom-file :no-error-if-file-is-missing)
+  (setq create-lockfiles nil) ;; ロックファイルを作成しない
+  (setq make-backup-files nil) ;; バックアップファイルを作成しない
+  (add-hook 'before-save-hook 'delete-trailing-whitespace) ;; 保存時に不要な空白を削除
+  (setq delete-by-moving-to-trash t) ;; 削除したファイルをゴミ箱へ移動する
+  (xterm-mouse-mode t) ;; マウス有効化
+  (menu-bar-mode -1) ;; メニューバー
+  (scroll-bar-mode 1) ;; スクロールバー
+  (tool-bar-mode -1);; ツールバー
+  (setq auto-hscroll-mode nil)
+  (setq truncate-partial-width-windows nil)
+  (add-hook 'text-mode-hook #'visual-line-mode)
+  (tab-bar-mode 1) ;; タブバーモード
+#+END_SRC
+
+* UI
+
+** Theme
+#+BEGIN_SRC emacs-lisp
+  (load-theme 'modus-vivendi)
+#+END_SRC
+
+** Icon
+CLI: NerdFontが必要
+GUI: M-x nerd-icons-install-fonts でフォントをDL
+#+BEGIN_SRC emacs-lisp
+
+  (use-package nerd-icons
+    :ensure t)
+  (use-package nerd-icons-completion
+    :ensure t
+    :after gmarginalia
+    :config
+    (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+  (use-package nerd-icons-corfu
+    :ensure t
+    :after corfu
+    :config
+    (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+  (use-package nerd-icons-dired
+    :ensure t
+    :hook
+    (dired-mode . nerd-icons-dired-mode))
+#+END_SRC
+
+
+* UTILLITY
+
+undo
+#+BEGIN_SRC emacs-lisp
+(use-package undo-fu :ensure t)
+
+(use-package undo-fu-session
+  :ensure t
+  :after undo-fu
+  :config
+  (undo-fu-session-global-mode +1)
+  )
+#+END_SRC
+
+
+ミニバッファの履歴を保持する
+#+BEGIN_SRC emacs-lisp
+(use-package savehist
+  :ensure nil
+  :hook (after-init . savehist-mode))
+#+END_SRC
+
+ミニバッファの補完に注釈を追加
+#+BEGIN_SRC emacs-lisp
+(use-package marginalia
+  :ensure t
+  :hook (after-init . marginalia-mode))
+#+END_SRC
+
+whick-key
+#+BEGIN_SRC emacs-lisp
+(use-package which-key
+  :ensure t
+  :config
+  (which-key-mode))
+#+END_SRC
+
+* DIRED
+
+#+BEGIN_SRC emacs-lisp
+(use-package dired
+  :ensure nil
+  :commands (dired)
+  :hook
+  ((dired-mode . dired-hide-details-mode)
+   (dired-mode . hl-line-mode))
+  :config
+  (setq dired-recursive-copies 'always)
+  (setq dired-recursive-deletes 'always)
+  (setq delete-by-moving-to-trash t)
+  (setq dired-dwim-target t))
+
+
+(use-package dired-subtree
+  :ensure t
+  :after dired
+  :bind
+  ( :map dired-mode-map
+    ("<tab>" . dired-subtree-toggle)
+    ("TAB" . dired-subtree-toggle)
+    ("<backtab>" . dired-subtree-remove)
+    ("S-TAB" . dired-subtree-remove))
+  :config
+  (setq dired-subtree-use-backgrounds nil))
+#+END_SRC
+
+* EDIT
+
+ミニバッファ補完UI
+#+BEGIN_SRC emacs-lisp
+  (use-package vertico
+    :ensure t
+    :hook (after-init . vertico-mode)
+    :config
+    ;; 候補をを最大20行まで表示
+    (setq vertico-count 20)
+    )
+#+END_SRC
+
+補完候補リスト作成、補完コマンド提供
+
+| コマンド        | 説明                             | ショートカット |
+|-----------------+----------------------------------+----------------|
+| consult-line    | バッファを行検索                 | C-c l          |
+| consult-outline | アウトラインを検索               | C-c o          |
+| consult-ripgrep | バッファのディレクトリ配下を検索 | C-c g          |
+| consult-buffer  | バッファ検索                     | C-c b          |
+| consult-find    | プロジェクトからファイルを検索   | C-c p          |
+
+
+#+BEGIN_SRC emacs-lisp
+  (use-package consult
+    :ensure t
+    :config
+    ;; バッファ、ファイル、ブックマークなどをまとめて絞り込めるようにする
+    (defcustom consult-buffer-sources
+    '(consult--source-hidden-buffer
+        consult--source-buffer
+        consult--source-file
+        consult--source-bookmark
+        consult--source-project-buffer
+        consult--source-project-file)
+    "Sources used by `consult-buffer'.
+
+    See `consult--multi' for a description of the source values."
+    :type '(repeat symbol))
+    ;; ミニバッファで?を入力して接頭辞のヘルプを表示する
+    (define-key consult-narrow-map
+    (vconcat consult-narrow-key "?") #'consult-narrow-help)
+        )
+#+END_SRC
+
+補完候補とのマッチング
+#+BEGIN_SRC emacs-lisp
+(use-package orderless
+  :ensure t
+  :config
+  (setq completion-styles '(orderless basic))
+  (setq completion-category-defaults nil)
+  (setq completion-category-overrides nil))
+#+END_SRC
+
+ 補完ポップアップ
+#+BEGIN_SRC emacs-lisp
+  (use-package corfu
+    :ensure t
+    :custom
+    (corfu-auto t)                ;; 自動補完を有効にする
+    (corfu-auto-delay 0)          ;; 補完表示の遅延をなくす
+   (corfu-preselect 'prompt)     ;; 補完候補をプロンプトの入力に合わせて事前選択
+    (corfu-cycle t)               ;; 候補の循環補完を有効にする
+    :hook (after-init . global-corfu-mode)
+    :bind (:map corfu-map ("<tab>" . corfu-complete))
+    :config
+    (corfu-popupinfo-mode 1) ; shows documentation after `corfu-popupinfo-delay'
+    ;; lsp-modeでcorfuが起動するように設定する
+    (with-eval-after-load 'lsp-mode
+      (setq lsp-completion-provider :none))
+    ;; Sort by input history (no need to modify `corfu-sort-function').
+    (with-eval-after-load 'savehist
+      (corfu-history-mode 1)
+      (add-to-list 'savehist-additional-variables 'corfu-history)))
+#+END_SRC
+
+ターミナル用補完ポップアップ
+#+BEGIN_SRC emacs-lisp
+  (use-package corfu-terminal
+    :ensure t
+    :after corfu
+    :config
+    ;; グラフィカルでないときだけ有効化
+    (unless (display-graphic-p)
+      (corfu-terminal-mode +1)))
+#+END_SRC
+
+
+* LSP
+
+LSPサーバーの準備
+
+TypeScript
+#+BEGIN_SRC bash
+npm i -g typescript-language-server
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (use-package eglot
+    :hook
+    (typescript-mode . eglot-ensure)
+    :config
+    (setq eglot-server-programs
+   '((typescript-mode . ("typescript-language-server" "--stdio")))
+  	  ))
+#+END_SRC
+
+* TypeScript
+#+BEGIN_SRC emacs-lisp
+  (use-package typescript-mode
+  :ensure t)
+#+END_SRC
+
+
+* Org
+見出しを自動生成する。
+#+BEGIN_SRC emacs-lisp
+  (use-package toc-org
+  :ensure t
+  :hook (org-mode . toc-org-mode))   ; 保存時に自動更新
+#+END_SRC
+
+表示をリッチにする
+#+BEGIN_SRC emacs-lisp
+  (use-package org-modern
+    :disabled t
+    :ensure t
+    :hook (org-mode . org-modern-mode)
+    :custom
+    (org-modern-star "●"))
+
+  (use-package org-indent
+  :ensure nil
+  :hook (org-mode . org-indent-mode))
+
+  (use-package org-modern-indent
+  :vc ( :fetcher github :repo "jdtsmith/org-modern-indent")
+  :ensure t
+  :config
+  (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
+#+END_SRC
+
+* Git
+#+BEGIN_SRC emacs-lisp
+  (use-package magit
+      :ensure t
+      :config
+      (when IS-WINDOWS
+          (setq magit-refresh-status-buffer nil)
+          (setq auto-revert-buffer-list-filter
+              'magit-auto-revert-repository-buffer-p)
+          (remove-hook 'magit-refs-sections-hook 'magit-insert-tags)
+          (remove-hook 'server-switch-hook 'magit-commit-diff)
+          (remove-hook 'with-editor-filter-visit-hook 'magit-commit-diff)))
+  ;; magitを開いたら最大化
+    (setq magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1
+          magit-bury-buffer-function   #'magit-restore-window-configuration)
+#+END_SRC
+
+差分表示
+#+BEGIN_SRC emacs-lisp
+  (use-package diff-hl
+  :ensure t
+  :hook ((magit-pre-refresh . diff-hl-magit-pre-refresh)
+         (magit-post-refresh . diff-hl-magit-post-refresh)
+         (dired-mode . diff-hl-dired-mode))
+  :init
+  (global-diff-hl-mode +1)
+  (global-diff-hl-show-hunk-mouse-mode +1)
+  (diff-hl-margin-mode +1))
+#+END_SRC
+
+* SHELL
+#+BEGIN_SRC emacs-lisp
+  (use-package eat
+    :ensure t)
+#+END_SRC
+
+* Claude
+#+BEGIN_SRC emacs-lisp
+  (use-package claude-code :ensure t
+  :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
+  :config
+  (claude-code-mode)
+  ;; 右にウィンドウを開く
+  (add-to-list 'display-buffer-alist
+  	      '("^\\*claude\\*"
+               (display-buffer-in-side-window)
+               (side . right)
+               (window-width . 0.33)))
+  :bind-keymap ("C-c c" . claude-code-command-map)) ;; or your preferred key
+#+END_SRC
+
+
+* KEYMAP
+
+** evil
+#+BEGIN_SRC emacs-lisp
+  (use-package evil
+    :ensure t
+    :init
+    (setq evil-want-keybinding nil)
+    (setq evil-undo-system 'undo-fu)
+    (setq evil-want-C-i-jump nil) ;; C-iをTabに割当て
+    :config
+    (evil-mode 1)
+    ;; バッファ全体を選択するテキストオブジェクトを定義
+    (evil-define-text-object evil-buffer-text-object (count &optional beg end type)
+      "Select entire buffer."
+      (evil-range (point-min) (point-max) type))
+    (define-key evil-inner-text-objects-map "e" 'evil-buffer-text-object)
+    (define-key evil-outer-text-objects-map "e" 'evil-buffer-text-object)
+    (define-key evil-normal-state-map "x" 'delete-forward-char)
+    (define-key evil-normal-state-map "X" 'delete-backward-char)
+
+  ;; Define the leader key as Space
+  (evil-set-leader 'normal (kbd "SPC"))
+  (evil-set-leader 'visual (kbd "SPC"))
+
+  ;; Vterm
+  (evil-define-key 'normal 'global (kbd "<leader> t") 'eat)
+
+  ;; tab-bar-mode
+  (evil-define-key 'normal 'global
+    ;; `tab-bar-mode`
+    "[t" #'tab-bar-switch-to-prev-tab
+    "]t" #'tab-bar-switch-to-next-tab
+    )
+  )
+#+END_SRC
+
+** evil-collection
+https://github.com/emacs-evil/evil-collection
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-collection
+  :ensure t
+    :after evil
+    :config
+    (evil-collection-init)
+    )
+#+END_SRC
+
+** evil-surround
+#+BEGIN_SRC emacs-lisp
+(use-package evil-surround
+  :ensure t
+  :after evil
+  :config
+  (global-evil-surround-mode 1)
+  )
+#+END_SRC
+
+** evil-commentary
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-commentary
+  :ensure t
+    :after evil
+    :config
+    (evil-commentary-mode)
+    )
+#+END_SRC
+
+
+** OTHER
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "C-c n") 'display-line-numbers-mode)
+  (global-set-key (kbd "C-c j") 'eat)
+  ;; consult keybindings
+  (global-set-key (kbd "C-c b") 'consult-buffer)
+  (global-set-key (kbd "C-c p") 'consult-find)
+  (global-set-key (kbd "C-c g") 'consult-ripgrep)
+  (global-set-key (kbd "C-c o") 'consult-outline)
+  (global-set-key (kbd "C-c l") 'consult-line)
+  ;; 一括置換
+  (global-set-key (kbd "C-c r") 'query-replace)        ; バッファ内一括置換
+  (global-set-key (kbd "C-c R") 'project-query-replace-regexp) ; プロジェクト内正規表現置換
+#+END_SRC

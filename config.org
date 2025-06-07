@@ -262,6 +262,37 @@ npm i -g typescript-language-server
 
 
 * Org
+#+BEGIN_SRC emacs-lisp
+   (use-package org
+   :ensure nil
+   :config
+   (setq org-directory "~/org")
+   (setq org-default-notes-file (expand-file-name "inbox.org" org-directory))
+
+   (setq org-todo-keywords
+       '((sequence "TODO(t)" "DOING(d)" "WAIT(w)" "|" "DONE(x)" "CANCELED(c)")))
+
+
+   (setq org-capture-templates
+         `(
+           ;; 記事草案テンプレート
+           ("a" "Article Draft" entry
+            (file+headline ,(expand-file-name "articles.org" org-directory) "Drafts")
+            "* %^{タイトル} :draft:\n:PROPERTIES:\n:EXPORT_FILE_NAME: %^{ファイル名slug}\n:END:\n\n*** 概要\n%?\n\n*** 背景\n\n*** 実装\n\n*** 今後\n")
+
+           ;; とりあえずメモ
+           ("i" "Quick Inbox" entry
+            (file ,(expand-file-name "inbox.org" org-directory))
+            "* %U %?\n")
+
+  	;; タスク
+  	("t" "Task" entry
+            (file ,(expand-file-name "inbox.org" org-directory))
+            "* TODO %?\nSCHEDULED: %^t\n")
+           ))
+   )
+#+END_SRC
+
 見出しを自動生成する。
 #+BEGIN_SRC emacs-lisp
   (use-package toc-org
@@ -423,4 +454,6 @@ https://github.com/emacs-evil/evil-collection
   ;; 一括置換
   (global-set-key (kbd "C-c r") 'query-replace)        ; バッファ内一括置換
   (global-set-key (kbd "C-c R") 'project-query-replace-regexp) ; プロジェクト内正規表現置換
+  ;; org
+  (define-key org-mode-map (kbd "C-c t") #'org-todo)
 #+END_SRC

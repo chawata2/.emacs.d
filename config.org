@@ -410,6 +410,24 @@ npm i -g typescript-language-server
   :bind-keymap ("C-c c" . claude-code-command-map)) ;; or your preferred key
 #+END_SRC
 
+選択範囲をClaude Code形式でコピーする
+#+BEGIN_SRC emacs-lisp
+(defun claude-code-copy-region-with-filename ()
+  "選択範囲をClaude Code形式(@filename#Lx-Ly)でコピーする"
+  (interactive)
+  (if (region-active-p)
+      (let* ((start-line (line-number-at-pos (region-beginning)))
+             (end-line (line-number-at-pos (region-end)))
+             (filename (buffer-file-name))
+             (relative-filename (if filename
+                                    (file-relative-name filename)
+                                  (buffer-name)))
+             (header (format "@%s#L%d-L%d" relative-filename start-line end-line)))
+        (kill-new header)
+        (message "Copied to clipboard: @%s#L%d-L%d" relative-filename start-line end-line))
+    (message "No region selected")))
+#+END_SRC
+
 
 * KEYMAP
 

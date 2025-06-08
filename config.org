@@ -2,6 +2,7 @@
 - [[#note][NOTE]]
   - [[#プロジェクトに追加][プロジェクトに追加]]
 - [[#emacs][EMACS]]
+- [[#desktop][DESKTOP]]
 - [[#ui][UI]]
   - [[#theme][Theme]]
   - [[#icon][Icon]]
@@ -47,6 +48,34 @@
   (add-hook 'text-mode-hook #'visual-line-mode)
   (tab-bar-mode 1) ;; タブバーモード
 #+END_SRC
+* DESKTOP
+
+セッション（ウィンドウ＆バッファ構成）を保存／復元
+#+BEGIN_SRC emacs-lisp
+  (use-package desktop
+    :ensure nil
+  :hook (emacs-startup . desktop-read)    ;; 起動時に読み込み
+  :init
+  (setq
+   ;; 保存ファイルを置くディレクトリ
+   desktop-dirname             "~/.emacs.d/desktop/"
+   ;; 自動保存間隔（秒）
+   desktop-auto-save-timeout   300
+   ;; 保存するファイル名
+   desktop-base-file-name      "emacs-desktop"
+   ;; 終了時に自動保存する
+   desktop-save               t
+   ;; フレーム／ウィンドウレイアウトも復元する
+   desktop-restore-frames     t)
+  :config
+  ;; kill-emacs 時に自動で保存
+  (add-hook 'kill-emacs-hook #'desktop-save-in-desktop-dir)
+  ;; 追加で保存したいグローバル変数
+  (add-to-list 'desktop-globals-to-save 'file-name-history)
+  (add-to-list 'desktop-globals-to-save 'register-alist)
+  (add-to-list 'desktop-globals-to-save 'kill-ring))
+#+END_SRC
+
 
 * UI
 
@@ -368,6 +397,7 @@ npm i -g typescript-language-server
 * Claude
 #+BEGIN_SRC emacs-lisp
   (use-package claude-code :ensure t
+  :disabled t
   :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
   :config
   (claude-code-mode)

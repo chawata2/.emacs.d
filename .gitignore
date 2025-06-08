@@ -8,3 +8,5 @@ transient/
 config.el
 undo-fu-session/
 projects
+custom.el
+org-persist/

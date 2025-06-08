@@ -10,3 +10,5 @@ undo-fu-session/
 projects
 custom.el
 org-persist/
+.emacs.desktop.lock
+emacs-desktop

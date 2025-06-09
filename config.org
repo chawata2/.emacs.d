@@ -54,26 +54,26 @@
 #+BEGIN_SRC emacs-lisp
   (use-package desktop
     :ensure nil
-  :hook (emacs-startup . desktop-read)    ;; 起動時に読み込み
-  :init
-  (setq
-   ;; 保存ファイルを置くディレクトリ
-   desktop-dirname             "~/.emacs.d/desktop/"
-   ;; 自動保存間隔（秒）
-   desktop-auto-save-timeout   300
-   ;; 保存するファイル名
-   desktop-base-file-name      "emacs-desktop"
-   ;; 終了時に自動保存する
-   desktop-save               t
-   ;; フレーム／ウィンドウレイアウトも復元する
-   desktop-restore-frames     t)
-  :config
-  ;; kill-emacs 時に自動で保存
-  (add-hook 'kill-emacs-hook #'desktop-save-in-desktop-dir)
-  ;; 追加で保存したいグローバル変数
-  (add-to-list 'desktop-globals-to-save 'file-name-history)
-  (add-to-list 'desktop-globals-to-save 'register-alist)
-  (add-to-list 'desktop-globals-to-save 'kill-ring))
+    :hook (emacs-startup . desktop-read)    ;; 起動時に読み込み
+    :init
+    (setq
+     ;; 保存ファイルを置くディレクトリ
+     desktop-dirname             "~/.emacs.d/desktop/"
+     ;; 自動保存間隔（秒）
+     desktop-auto-save-timeout   300
+     ;; 保存するファイル名
+     desktop-base-file-name      "emacs-desktop"
+     ;; 終了時に自動保存する
+     desktop-save               t
+     ;; フレーム／ウィンドウレイアウトも復元する
+     desktop-restore-frames     t)
+    :config
+    ;; kill-emacs 時に自動で保存
+    (add-hook 'kill-emacs-hook #'desktop-save-in-desktop-dir)
+    ;; 追加で保存したいグローバル変数
+    (add-to-list 'desktop-globals-to-save 'file-name-history)
+    (add-to-list 'desktop-globals-to-save 'register-alist)
+    (add-to-list 'desktop-globals-to-save 'kill-ring))
 #+END_SRC
 
 
@@ -112,66 +112,66 @@ GUI: M-x nerd-icons-install-fonts でフォントをDL
 
 undo
 #+BEGIN_SRC emacs-lisp
-(use-package undo-fu :ensure t)
+  (use-package undo-fu :ensure t)
 
-(use-package undo-fu-session
-  :ensure t
-  :after undo-fu
-  :config
-  (undo-fu-session-global-mode +1)
-  )
+  (use-package undo-fu-session
+    :ensure t
+    :after undo-fu
+    :config
+    (undo-fu-session-global-mode +1)
+    )
 #+END_SRC
 
 
 ミニバッファの履歴を保持する
 #+BEGIN_SRC emacs-lisp
-(use-package savehist
-  :ensure nil
-  :hook (after-init . savehist-mode))
+  (use-package savehist
+    :ensure nil
+    :hook (after-init . savehist-mode))
 #+END_SRC
 
 ミニバッファの補完に注釈を追加
 #+BEGIN_SRC emacs-lisp
-(use-package marginalia
-  :ensure t
-  :hook (after-init . marginalia-mode))
+  (use-package marginalia
+    :ensure t
+    :hook (after-init . marginalia-mode))
 #+END_SRC
 
 whick-key
 #+BEGIN_SRC emacs-lisp
-(use-package which-key
-  :ensure t
-  :config
-  (which-key-mode))
+  (use-package which-key
+    :ensure t
+    :config
+    (which-key-mode))
 #+END_SRC
 
 * DIRED
 
 #+BEGIN_SRC emacs-lisp
-(use-package dired
-  :ensure nil
-  :commands (dired)
-  :hook
-  ((dired-mode . dired-hide-details-mode)
-   (dired-mode . hl-line-mode))
-  :config
-  (setq dired-recursive-copies 'always)
-  (setq dired-recursive-deletes 'always)
-  (setq delete-by-moving-to-trash t)
-  (setq dired-dwim-target t))
+  (use-package dired
+    :ensure nil
+    :commands (dired)
+    :hook
+    ((dired-mode . dired-hide-details-mode)
+     (dired-mode . hl-line-mode))
+    :config
+    (setq dired-recursive-copies 'always)
+    (setq dired-recursive-deletes 'always)
+    (setq delete-by-moving-to-trash t)
+    (setq dired-dwim-target t))
 
 
-(use-package dired-subtree
-  :ensure t
-  :after dired
-  :bind
-  ( :map dired-mode-map
-    ("<tab>" . dired-subtree-toggle)
-    ("TAB" . dired-subtree-toggle)
-    ("<backtab>" . dired-subtree-remove)
-    ("S-TAB" . dired-subtree-remove))
-  :config
-  (setq dired-subtree-use-backgrounds nil))
+  (use-package dired-subtree
+    :ensure t
+    :after dired
+    :bind
+    ( :map dired-mode-map
+      ("<tab>" . dired-subtree-toggle)
+      ("TAB" . dired-subtree-toggle)
+      ("<backtab>" . dired-subtree-remove)
+      ("S-TAB" . dired-subtree-remove))
+    :config
+    (setq dired-subtree-use-backgrounds nil))
 #+END_SRC
 
 * EDIT
@@ -293,42 +293,43 @@ npm i -g typescript-language-server
 * Org
 #+BEGIN_SRC emacs-lisp
   (use-package org
-  :ensure nil
-  :config
-  (setq org-directory "~/org")
+    :ensure nil
+    :config
+    (setq org-directory "~/org")
 
-  (setq org-default-notes-file (expand-file-name "inbox.org" org-directory))
+    (setq org-default-notes-file (expand-file-name "inbox.org" org-directory))
 
-  (setq org-todo-keywords
-      '((sequence "TODO(t)" "DOING(d)" "WAIT(w)" "|" "DONE(x)" "CANCELED(c)")))
+    (setq org-todo-keywords
+  	'((sequence "TODO(t)" "DOING(d)" "WAIT(w)" "|" "DONE(x)" "CANCELED(c)")))
 
-  (setq org-log-done 'time) ;; DONEした日時を記録
-  (setq org-log-into-drawer t)   ;; ログは :LOGBOOK: の中にしまう
+    (setq org-log-done 'time) ;; DONEした日時を記録
+    (setq org-log-into-drawer t)   ;; ログは :LOGBOOK: の中にしまう
 
-  (setq org-capture-templates
-        `(
-          ;; 記事草案テンプレート
-          ("a" "Article Draft" entry
-           (file+headline ,(expand-file-name "articles.org" org-directory) "Drafts")
-           "* %^{タイトル} :draft:\n:PROPERTIES:\n:EXPORT_FILE_NAME: %^{ファイル名slug}\n:END:\n\n*** 概要\n%?\n\n*** 背景\n\n*** 実装\n\n*** 今後\n")
+    (setq org-capture-templates
+  	`(
+            ;; 記事草案テンプレート
+            ("a" "Article Draft" entry
+             (file+headline ,(expand-file-name "articles.org" org-directory) "Drafts")
+             "* %^{タイトル} :draft:\n:PROPERTIES:\n:EXPORT_FILE_NAME: %^{ファイル名slug}\n:END:\n\n*** 概要\n%?\n\n*** 背景\n\n*** 実装\n\n*** 今後\n")
 
-          ;; とりあえずメモ
-          ("i" "Quick Inbox" entry
-           (file ,(expand-file-name "inbox.org" org-directory))
-           "* %U %?\n")
+            ;; とりあえずメモ
+            ("i" "Quick Inbox" entry
+             (file ,(expand-file-name "inbox.org" org-directory))
+             "* %U %?\n")
 
-  	;; タスク
-  	("t" "Task" entry
-           (file ,(expand-file-name "inbox.org" org-directory))
-           "* TODO %?\nSCHEDULED: %^t\n")
-          ))
+  	  ;; タスク
+  	  ("t" "Task" entry
+             (file ,(expand-file-name "inbox.org" org-directory))
+             "* TODO %?\nSCHEDULED: %^t\n")
+            ))
 
-  ;; org-agenda
-  (setq org-agenda-files
-        '("~/org/inbox.org"))
-  ;; 期限切れタスクも表示
-  (setq org-agenda-show-future-repeats nil)
-  (setq org-agenda-span 'week))
+    ;; org-agenda
+    (setq org-agenda-files
+  	'("~/org/inbox.org"))
+    ;; 期限切れタスクも表示
+    (setq org-agenda-show-future-repeats nil)
+    (setq org-agenda-span 'week)
+    )
 #+END_SRC
 
 見出しを自動生成する。

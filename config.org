@@ -47,7 +47,9 @@
   (setq truncate-partial-width-windows nil)
   (add-hook 'text-mode-hook #'visual-line-mode)
   (tab-bar-mode 1) ;; タブバーモード
+  (global-hl-line-mode t) ;; カーソル行を強調
 #+END_SRC
+
 * DESKTOP
 
 セッション（ウィンドウ＆バッファ構成）を保存／復元
